@@ -1,0 +1,124 @@
+// Hand trimmed ABI. Only what the dashboard reads.
+
+export const wickAbi = [
+  {
+    type: "function",
+    name: "pools",
+    stateMutability: "view",
+    inputs: [{ name: "poolId", type: "bytes32" }],
+    outputs: [
+      { name: "epochStart", type: "uint64" },
+      { name: "revealedClose", type: "uint64" },
+      { name: "phase", type: "uint8" },
+      { name: "epochCount", type: "uint40" },
+      { name: "snapshotSqrtPriceX96", type: "uint160" },
+      { name: "snapshotTick", type: "int24" },
+      { name: "lastTick", type: "int24" },
+      { name: "lastTickBlock", type: "uint64" },
+      { name: "volEma", type: "uint24" },
+    ],
+  },
+  {
+    type: "function",
+    name: "minSpan",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint64" }],
+  },
+  {
+    type: "function",
+    name: "maxSpan",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint64" }],
+  },
+  {
+    type: "event",
+    name: "OrderPlaced",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "owner", type: "address", indexed: true },
+      { name: "blockNumber", type: "uint64", indexed: false },
+      { name: "zeroForOne", type: "bool", indexed: false },
+      { name: "amountIn", type: "uint128", indexed: false },
+      { name: "claimId", type: "uint256", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "OrderCancelled",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "owner", type: "address", indexed: true },
+      { name: "blockNumber", type: "uint64", indexed: false },
+      { name: "zeroForOne", type: "bool", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "CandleLit",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "epochStart", type: "uint64", indexed: false },
+      { name: "windowLastBlock", type: "uint64", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "CandleDrawing",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "epochStart", type: "uint64", indexed: false },
+      { name: "requestId", type: "uint256", indexed: false },
+      { name: "snapshotTick", type: "int24", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "CandleRevealed",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "epochStart", type: "uint64", indexed: false },
+      { name: "closeBlock", type: "uint64", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "EpochSettled",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "epochId", type: "uint40", indexed: true },
+      { name: "startBlock", type: "uint64", indexed: false },
+      { name: "closeBlock", type: "uint64", indexed: false },
+      { name: "in0", type: "uint128", indexed: false },
+      { name: "in1", type: "uint128", indexed: false },
+      { name: "out1For0", type: "uint128", indexed: false },
+      { name: "out0For1", type: "uint128", indexed: false },
+      { name: "refund0", type: "uint128", indexed: false },
+      { name: "refund1", type: "uint128", indexed: false },
+      { name: "keeper", type: "address", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "InstantFeeCharged",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "origin", type: "address", indexed: true },
+      { name: "fee", type: "uint24", indexed: false },
+      { name: "roundTrip", type: "bool", indexed: false },
+    ],
+  },
+  {
+    type: "event",
+    name: "Redeemed",
+    inputs: [
+      { name: "poolId", type: "bytes32", indexed: true },
+      { name: "owner", type: "address", indexed: true },
+      { name: "blockNumber", type: "uint64", indexed: false },
+      { name: "zeroForOne", type: "bool", indexed: false },
+      { name: "out", type: "uint256", indexed: false },
+      { name: "refund", type: "uint256", indexed: false },
+    ],
+  },
+] as const;
