@@ -22,9 +22,11 @@ contract BaseScript is Script, Deployers {
     /////////////////////////////////////
     // --- Configure These ---
     /////////////////////////////////////
-    IERC20 internal constant token0 = IERC20(0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831); // WICKA, Unichain Sepolia
-    IERC20 internal constant token1 = IERC20(0xa97c20Fd92efeb66DD7458c9C5dfd3F2b7B2BA7e); // WICKB, Unichain Sepolia
-    IHooks constant hookContract = IHooks(0xdb51948ce7b6E6C038004c924bdb4851e57430c8);
+    // Unichain Sepolia (primary demo): WICKA 0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831,
+    // WICKB 0xa97c20Fd92efeb66DD7458c9C5dfd3F2b7B2BA7e, hook 0xdb51948ce7b6E6C038004c924bdb4851e57430c8
+    IERC20 internal constant token0 = IERC20(0x581B822B34bEf5138f2CE6EaCE81384D553F70a8); // WICKA, Base Sepolia
+    IERC20 internal constant token1 = IERC20(0x55D4e4714fbcE432A1B15f23FBD28E299AE5037d); // WICKB, Base Sepolia
+    IHooks constant hookContract = IHooks(0x749F507e5EA97588Ce1d97868399e294037a70C8);
     /////////////////////////////////////
 
     Currency immutable currency0;

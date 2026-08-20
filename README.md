@@ -126,6 +126,30 @@ forge script script/00_DeployHook.s.sol --rpc-url $RPC_URL --broadcast
 
 Then set the printed hook address into script/base/BaseScript.sol (hookContract) and frontend/src/config.ts, create the pool with script/01_CreatePoolAndAddLiquidity.s.sol, and run the dashboard with `cd frontend && npm install && npm run dev`.
 
+## Live deployments
+
+Unichain Sepolia (chain 1301), primary demo. Randomness is the BlockhashProvider because Chainlink VRF does not support Unichain Sepolia. Fine for a demo, biasable by a proposer, not for value at risk.
+
+| Contract | Address |
+| --- | --- |
+| WickHook | 0xdb51948ce7b6E6C038004c924bdb4851e57430c8 |
+| BlockhashProvider | 0xd046d5a5302ff997c81275c61bf64e1eef02fc93 |
+| WICKA | 0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831 |
+| WICKB | 0xa97c20Fd92efeb66DD7458c9C5dfd3F2b7B2BA7e |
+
+Pool id 0xccd0fae511172bd494561750f3310e280531898f4ac4b82e6da76cc5892c3115, deployed at block 60116497.
+
+Base Sepolia (chain 84532), production randomness path with Chainlink VRF 2.5 (coordinator 0x5C210eF41CD1a72de73bF76eC39637bB0d3d7BEE, 30 gwei lane).
+
+| Contract | Address |
+| --- | --- |
+| WickHook | 0x749F507e5EA97588Ce1d97868399e294037a70C8 |
+| ChainlinkVRFProvider | 0x631100C996aBFea0d81233D4DF446a816E124C97 |
+| WICKA | 0x581B822B34bEf5138f2CE6EaCE81384D553F70a8 |
+| WICKB | 0x55D4e4714fbcE432A1B15f23FBD28E299AE5037d |
+
+Pool id 0x4225440c775b36d1e5e4794cff503e8619d0a2ff21d2771af82f2c4b91a8dae3, deployed at block 45724610. The ChainlinkVRFProvider is the subscription consumer (it is the contract that calls the coordinator).
+
 ## Judging criteria mapping
 
 - Originality (30): first candle auction settlement hook, first uniform clearing price hook, receipts from the official dataset above.
