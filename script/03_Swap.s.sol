@@ -10,7 +10,7 @@ contract SwapScript is BaseScript {
         PoolKey memory poolKey = PoolKey({
             currency0: currency0,
             currency1: currency1,
-            fee: 3000,
+            fee: 0x800000, // LPFeeLibrary.DYNAMIC_FEE_FLAG, must match the initialized pool
             tickSpacing: 60,
             hooks: hookContract // This must match the pool
         });
@@ -29,8 +29,8 @@ contract SwapScript is BaseScript {
             zeroForOne: true,
             poolKey: poolKey,
             hookData: hookData,
-            receiver: address(this),
-            deadline: block.timestamp + 30
+            receiver: deployerAddress,
+            deadline: block.timestamp + 600
         });
 
         vm.stopBroadcast();
