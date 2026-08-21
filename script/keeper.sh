@@ -40,7 +40,14 @@ while true; do
   case "$PHASE" in
     0)
       if [ "$EPOCH_START" != "0" ] && [ "$BLOCK" -gt $((EPOCH_START + MAX_SPAN - 1)) ]; then
-        send requestClose
+        # Only draw when the window actually holds orders. Without this the
+        # empty relight path would burn keeper gas every poll.
+        HAS_ORDERS=$(cast logs --rpc-url "$RPC_URL" --address "$HOOK" \
+          --from-block "$EPOCH_START" --to-block $((EPOCH_START + MAX_SPAN - 1)) \
+          "OrderPlaced(bytes32,address,uint64,bool,uint128,uint256)" 2>/dev/null | head -1)
+        if [ -n "$HAS_ORDERS" ]; then
+          send requestClose
+        fi
       fi
       ;;
     1)

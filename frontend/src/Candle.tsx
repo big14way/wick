@@ -14,7 +14,10 @@ type Props = {
 const STAGE_H = 260;
 
 export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, revealedClose }: Props) {
-  const idle = epochStart === 0n;
+  // A window that ran out with no orders waits for the next order to relight,
+  // so it renders like the idle state rather than a burnt out stub.
+  const expired = epochStart !== 0n && phase === 0 && currentBlock > epochStart + maxSpan - 1n;
+  const idle = epochStart === 0n || expired;
   const windowLast = idle ? 0n : epochStart + maxSpan - 1n;
   const earliestClose = idle ? 0n : epochStart + minSpan - 1n;
 
@@ -42,8 +45,18 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
 
   const flameOut = phase !== 0;
 
+  const steps = ["Waiting", "Burning", "Drawing", "Revealed"];
+  const activeStep = idle ? 0 : phase === 0 ? 1 : phase === 1 ? 2 : 3;
+
   return (
     <div className="candle-scene">
+      <div className="steps" aria-label="Candle lifecycle">
+        {steps.map((s, i) => (
+          <span key={s} className={i < activeStep ? "step done" : i === activeStep ? "step now" : "step"}>
+            {s}
+          </span>
+        ))}
+      </div>
       <div className="candle-stage" aria-hidden="true">
         <div className={flameOut ? "flame out" : "flame"} />
         <div className="wick-thread" />
@@ -62,7 +75,8 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
         <div className="candle-base" />
       </div>
       <div className="candle-caption">
-        {idle && "No orders yet. The candle lights when the first protected order lands."}
+        {expired && "The last window passed empty. The next protected order relights the candle."}
+        {idle && !expired && "No orders yet. The candle lights when the first protected order lands."}
         {!idle && phase === 0 && "Burning. The candle dies somewhere in the striped band, and only the draw knows where."}
         {phase === 1 && "Window over. Drawing the close block from the randomness provider."}
         {phase === 2 && `Revealed. The candle died at block ${revealedClose.toString()}. Orders after it roll forward.`}

@@ -15,6 +15,17 @@ export const config = {
   // Hookmate v4 swap router for this chain, see AddressConstants.sol.
   routerAddress: "0x9cD2b0a732dd5e023a5539921e0FD1c30E198Dba" as `0x${string}`,
 
+  // WalletConnect Cloud project id. Injected wallets connect directly; this
+  // enables the QR modal for mobile wallets. Empty string disables it.
+  walletConnectProjectId: "1eebe528ca0ce94a99ceaa2e915058d7",
+
+  // Randomness provider wired into the hook on this chain.
+  // kind "vrf" for ChainlinkVRFProvider, "blockhash" for the demo BlockhashProvider.
+  randomness: {
+    kind: "blockhash" as "vrf" | "blockhash",
+    address: "0xd046d5a5302ff997c81275c61bf64e1eef02fc93" as `0x${string}`,
+  },
+
   // The pool key the hook was initialized with. currency0 must sort below currency1.
   poolKey: {
     currency0: "0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831" as `0x${string}`, // WICKA
