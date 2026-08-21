@@ -143,6 +143,9 @@ type OrderIn = { block: bigint; zeroForOne: boolean; owner: string; claimId: big
 type Claim = { block: bigint; zeroForOne: boolean; claimId: bigint; balance: bigint; settled: boolean };
 type Fees = { base: number; perTick: number; batch: number };
 
+// Instant lane slippage tolerance, percent below the quoted estimate.
+const SLIPPAGE_PCT = 1.5;
+
 // Turn raw node errors into something a person can act on.
 const friendly = (e: unknown) => {
   const m = e instanceof Error ? e.message : String(e);
@@ -328,11 +331,19 @@ export function Trade({
       setBusy(lane === "protected" ? "Placing order" : "Swapping");
       const hookData = lane === "protected" ? "0x" : encodeAbiParameters([{ type: "uint8" }], [1]);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 600);
+      // Instant swaps get a slippage floor from the current price estimate so a
+      // fat fingered size cannot blow through the book. Protected orders must
+      // keep 0: their output arrives later at the candle close, so the router
+      // sees no immediate output at all.
+      const amountOutMin =
+        lane === "instant" && estimateOut
+          ? parseUnits((estimateOut * (1 - SLIPPAGE_PCT / 100)).toFixed(outDecimals), outDecimals)
+          : 0n;
       const tx = await wc.writeContract({
         address: config.routerAddress,
         abi: routerAbi,
         functionName: "swapExactTokensForTokens",
-        args: [parsedAmount, 0n, zeroForOne, config.poolKey, hookData as `0x${string}`, account, deadline],
+        args: [parsedAmount, amountOutMin, zeroForOne, config.poolKey, hookData as `0x${string}`, account, deadline],
         account,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash: tx });
@@ -470,6 +481,12 @@ export function Trade({
                 : "reading"}
           </span>
         </div>
+        {lane === "instant" && (
+          <div className="detail">
+            <span>Slippage limit</span>
+            <span className="mono">{SLIPPAGE_PCT}% below quote, reverts past that</span>
+          </div>
+        )}
         <div className="detail">
           <span>Execution</span>
           <span className="mono">
