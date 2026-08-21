@@ -3,6 +3,7 @@ import { createPublicClient, http, formatUnits, type Log } from "viem";
 import { wickAbi } from "./abi";
 import { config } from "./config";
 import { Candle } from "./Candle";
+import { Trade } from "./Trade";
 
 const client = createPublicClient({ transport: http(config.rpcUrl) });
 
@@ -15,7 +16,7 @@ type PoolState = {
   volEma: number;
 };
 
-type OrderEvt = { block: bigint; zeroForOne: boolean; amountIn: bigint; owner: string };
+type OrderEvt = { block: bigint; zeroForOne: boolean; amountIn: bigint; owner: string; claimId: bigint };
 type FeeEvt = { fee: number; roundTrip: boolean; origin: string };
 type EpochEvt = {
   epochId: bigint;
@@ -108,6 +109,7 @@ export default function App() {
             zeroForOne: a.zeroForOne as boolean,
             amountIn: a.amountIn as bigint,
             owner: a.owner as string,
+            claimId: a.claimId as bigint,
           });
         } else if (l.eventName === "InstantFeeCharged") {
           f.push({ fee: Number(a.fee), roundTrip: a.roundTrip as boolean, origin: a.origin as string });
@@ -217,6 +219,8 @@ export default function App() {
             )}
             {!pool && <div className="empty">Waiting for the first read.</div>}
           </section>
+
+          <Trade orders={orders} />
         </div>
 
         <div className="stack">

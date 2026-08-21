@@ -1,6 +1,105 @@
-// Hand trimmed ABI. Only what the dashboard reads.
+// Hand trimmed ABIs. Only what the dashboard reads and the trade panel writes.
+
+const poolKeyComponents = [
+  { name: "currency0", type: "address" },
+  { name: "currency1", type: "address" },
+  { name: "fee", type: "uint24" },
+  { name: "tickSpacing", type: "int24" },
+  { name: "hooks", type: "address" },
+] as const;
+
+export const erc20Abi = [
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "allowance",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ type: "bool" }],
+  },
+] as const;
+
+export const routerAbi = [
+  {
+    type: "function",
+    name: "swapExactTokensForTokens",
+    stateMutability: "payable",
+    inputs: [
+      { name: "amountIn", type: "uint256" },
+      { name: "amountOutMin", type: "uint256" },
+      { name: "zeroForOne", type: "bool" },
+      { name: "poolKey", type: "tuple", components: poolKeyComponents },
+      { name: "hookData", type: "bytes" },
+      { name: "receiver", type: "address" },
+      { name: "deadline", type: "uint256" },
+    ],
+    outputs: [{ name: "delta", type: "int256" }],
+  },
+] as const;
 
 export const wickAbi = [
+  {
+    type: "function",
+    name: "redeem",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "key", type: "tuple", components: poolKeyComponents },
+      { name: "blockNumber", type: "uint64" },
+      { name: "zeroForOne", type: "bool" },
+      { name: "to", type: "address" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "cancel",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "key", type: "tuple", components: poolKeyComponents },
+      { name: "blockNumber", type: "uint64" },
+      { name: "zeroForOne", type: "bool" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "balanceOf",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "id", type: "uint256" },
+    ],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "epochOfBlock",
+    stateMutability: "view",
+    inputs: [
+      { name: "poolId", type: "bytes32" },
+      { name: "blockNumber", type: "uint256" },
+    ],
+    outputs: [{ type: "uint40" }],
+  },
   {
     type: "function",
     name: "pools",

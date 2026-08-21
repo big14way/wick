@@ -433,3 +433,100 @@ button.link:focus-visible {
   outline: 2px solid var(--flame);
   outline-offset: 2px;
 }
+
+/* Trade panel */
+
+.wallet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.trade-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  background: var(--panel-edge);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  color: var(--wax);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+.btn:hover {
+  border-color: var(--flame);
+}
+
+.btn:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.btn.primary {
+  background: var(--flame);
+  border-color: var(--flame);
+  color: var(--bg);
+  font-weight: 600;
+  width: 100%;
+}
+
+.btn.toggle {
+  flex: 1;
+  color: var(--wax-dim);
+}
+
+.btn.toggle.on {
+  border-color: var(--flame);
+  color: var(--flame-hot);
+}
+
+.btn.small {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.amount {
+  background: var(--bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  color: var(--wax);
+  flex: 1;
+  font-family: inherit;
+  font-size: 15px;
+  padding: 8px 10px;
+}
+
+.amount:focus {
+  border-color: var(--flame);
+  outline: none;
+}
+
+.claims {
+  margin-top: 14px;
+}
+
+.claims h3 {
+  color: var(--caption);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.notice.ok {
+  border-color: var(--settled);
+}
