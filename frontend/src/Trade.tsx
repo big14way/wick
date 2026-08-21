@@ -143,6 +143,16 @@ type OrderIn = { block: bigint; zeroForOne: boolean; owner: string; claimId: big
 type Claim = { block: bigint; zeroForOne: boolean; claimId: bigint; balance: bigint; settled: boolean };
 type Fees = { base: number; perTick: number; batch: number };
 
+// Turn raw node errors into something a person can act on.
+const friendly = (e: unknown) => {
+  const m = e instanceof Error ? e.message : String(e);
+  if (/nonce too low|replacement transaction underpriced/i.test(m))
+    return "Another transaction from this wallet landed first and stole the nonce. Retry the swap; it will go through.";
+  if (/user rejected|denied/i.test(m)) return "Transaction rejected in the wallet.";
+  if (/insufficient funds/i.test(m)) return "Not enough ETH in the wallet for gas.";
+  return m.slice(0, 200);
+};
+
 const fmtAmt = (v: bigint, d: number) => {
   const n = Number(formatUnits(v, d));
   return n >= 1000 ? n.toLocaleString("en-US", { maximumFractionDigits: 2 }) : n.toFixed(n >= 1 ? 4 : 6);
@@ -337,7 +347,7 @@ export function Trade({
         tx,
       });
     } catch (e) {
-      setStatus({ kind: "err", text: (e instanceof Error ? e.message : String(e)).slice(0, 200) });
+      setStatus({ kind: "err", text: friendly(e) });
     } finally {
       setBusy(null);
     }
@@ -368,7 +378,7 @@ export function Trade({
       if (receipt.status !== "success") throw new Error("Transaction reverted.");
       setStatus({ kind: "ok", text: c.settled ? "Redeemed to your wallet." : "Cancelled and refunded.", tx });
     } catch (e) {
-      setStatus({ kind: "err", text: (e instanceof Error ? e.message : String(e)).slice(0, 200) });
+      setStatus({ kind: "err", text: friendly(e) });
     } finally {
       setBusy(null);
     }
