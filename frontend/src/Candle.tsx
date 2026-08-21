@@ -11,7 +11,7 @@ type Props = {
   revealedClose: bigint;
 };
 
-const STAGE_H = 260;
+const STAGE_H = 150;
 
 export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, revealedClose }: Props) {
   // A window that ran out with no orders waits for the next order to relight,
@@ -27,36 +27,32 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
     const elapsed = currentBlock >= epochStart ? Number(currentBlock - epochStart) : 0;
     burned = Math.min(elapsed / Number(maxSpan), 1);
   }
-  if (phase !== 0) burned = 1;
+  if (!idle && phase !== 0) burned = 1;
 
-  const waxH = Math.max(Math.round(STAGE_H * (1 - burned)), 14);
+  const waxH = Math.max(Math.round(STAGE_H * (1 - burned)), 12);
 
   // Scorch band covers the possible close range, measured from the base up.
   // Block b maps to remaining height STAGE_H * (1 - (b - epochStart + 1) / maxSpan).
   const heightAt = (b: bigint) =>
     idle ? 0 : Math.max(Math.round(STAGE_H * (1 - Number(b - epochStart + 1n) / Number(maxSpan))), 0);
 
-  const bandTop = heightAt(earliestClose); // taller edge, earliest possible death
-  const bandBottom = heightAt(windowLast); // shorter edge, latest possible death
+  const bandTop = heightAt(earliestClose);
+  const bandBottom = heightAt(windowLast);
   const bandVisible = !idle && phase === 0;
 
-  const markVisible = phase === 2 && revealedClose >= epochStart;
+  const markVisible = phase === 2 && revealedClose >= epochStart && !idle;
   const markBottom = markVisible ? heightAt(revealedClose) : 0;
 
-  const flameOut = phase !== 0;
+  const flameOut = !idle && phase !== 0;
 
   const steps = ["Waiting", "Burning", "Drawing", "Revealed"];
   const activeStep = idle ? 0 : phase === 0 ? 1 : phase === 1 ? 2 : 3;
 
+  // Positions along the window track, as percentages of the span.
+  const pct = (b: bigint) => Math.min(Math.max((Number(b - epochStart + 1n) / Number(maxSpan)) * 100, 0), 100);
+
   return (
-    <div className="candle-scene">
-      <div className="steps" aria-label="Candle lifecycle">
-        {steps.map((s, i) => (
-          <span key={s} className={i < activeStep ? "step done" : i === activeStep ? "step now" : "step"}>
-            {s}
-          </span>
-        ))}
-      </div>
+    <div className="candle-flex">
       <div className="candle-stage" aria-hidden="true">
         <div className={flameOut ? "flame out" : "flame"} />
         <div className="wick-thread" />
@@ -74,12 +70,40 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
         </div>
         <div className="candle-base" />
       </div>
-      <div className="candle-caption">
-        {expired && "The last window passed empty. The next protected order relights the candle."}
-        {idle && !expired && "No orders yet. The candle lights when the first protected order lands."}
-        {!idle && phase === 0 && "Burning. The candle dies somewhere in the striped band, and only the draw knows where."}
-        {phase === 1 && "Window over. Drawing the close block from the randomness provider."}
-        {phase === 2 && `Revealed. The candle died at block ${revealedClose.toString()}. Orders after it roll forward.`}
+
+      <div className="candle-side">
+        <div className="steps" aria-label="Candle lifecycle">
+          {steps.map((s, i) => (
+            <span key={s} className={i < activeStep ? "step done" : i === activeStep ? "step now" : "step"}>
+              {s}
+            </span>
+          ))}
+        </div>
+
+        <div className="candle-caption">
+          {expired && "The last window passed empty. The next protected order relights the candle."}
+          {idle && !expired && "No orders yet. The candle lights when the first protected order lands."}
+          {!idle && phase === 0 && "Burning. The close falls somewhere in the striped band, and only the draw knows where."}
+          {!idle && phase === 1 && "Window over. Drawing the close block from the randomness provider."}
+          {!idle && phase === 2 && `Revealed. The candle died at block ${revealedClose.toString()}. Orders after it roll forward.`}
+        </div>
+
+        {!idle && (
+          <div className="window-wrap">
+            <div className="window-track">
+              <div className="track-fill" style={{ width: `${burned * 100}%` }} />
+              <div className="track-zone" style={{ left: `${pct(earliestClose)}%`, right: 0 }} title="Possible close range" />
+              {markVisible && <div className="track-close" style={{ left: `${pct(revealedClose)}%` }} />}
+            </div>
+            <div className="window-labels">
+              <span className="mono">#{epochStart.toString()}</span>
+              <span className="mono mid">
+                {phase === 0 && currentBlock <= windowLast ? `block #${currentBlock.toString()}` : "window complete"}
+              </span>
+              <span className="mono">#{windowLast.toString()}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

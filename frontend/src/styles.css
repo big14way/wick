@@ -202,6 +202,13 @@ header.mast {
   gap: 18px;
 }
 
+@media (min-width: 901px) {
+  .stack-left {
+    position: sticky;
+    top: 18px;
+  }
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--edge-soft);
@@ -560,17 +567,25 @@ header.mast {
 
 /* Candle */
 
-.candle-scene {
-  display: flex;
-  flex-direction: column;
+.candle-flex {
   align-items: center;
-  padding: 4px 0;
+  display: flex;
+  gap: 22px;
+  padding: 6px 2px;
+}
+
+.candle-side {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
 }
 
 .steps {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
 }
 
 .step {
@@ -595,12 +610,13 @@ header.mast {
 
 .candle-stage {
   position: relative;
-  height: 240px;
-  width: 120px;
+  height: 196px;
+  width: 84px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .flame {
@@ -647,7 +663,7 @@ header.mast {
 }
 
 .wax-column {
-  width: 60px;
+  width: 48px;
   background: linear-gradient(180deg, #f7efe2 0%, var(--ink) 45%, #ddd2c0 100%);
   border-radius: 8px 8px 4px 4px;
   position: relative;
@@ -681,19 +697,72 @@ header.mast {
 }
 
 .candle-base {
-  width: 92px;
-  height: 10px;
+  width: 72px;
+  height: 9px;
   background: var(--panel-2);
   border-radius: 4px;
   margin-top: 2px;
 }
 
 .candle-caption {
-  margin-top: 12px;
-  text-align: center;
   color: var(--ink-3);
   font-size: 12.5px;
-  max-width: 280px;
+}
+
+/* Window progress track */
+
+.window-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.window-track {
+  background: var(--bg-raised);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.track-fill {
+  background: linear-gradient(90deg, rgba(245, 165, 74, 0.55), var(--flame));
+  border-radius: 999px;
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.track-zone {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(224, 96, 63, 0.35),
+    rgba(224, 96, 63, 0.35) 3px,
+    transparent 3px,
+    transparent 7px
+  );
+  bottom: 0;
+  position: absolute;
+  top: 0;
+}
+
+.track-close {
+  background: var(--ember);
+  bottom: -2px;
+  box-shadow: 0 0 6px rgba(224, 96, 63, 0.8);
+  position: absolute;
+  top: -2px;
+  width: 3px;
+}
+
+.window-labels {
+  color: var(--ink-3);
+  display: flex;
+  font-size: 10.5px;
+  justify-content: space-between;
+}
+
+.window-labels .mid {
+  color: var(--ink-2);
 }
 
 .phase-chip {
@@ -719,12 +788,51 @@ header.mast {
   color: var(--good);
 }
 
-.stat-rows {
-  margin-top: 14px;
-  width: 100%;
+.stat-inline {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 14px;
+}
+
+@media (max-width: 1100px) {
+  .stat-inline {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Activity tabs */
+
+.mini-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-raised);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.mini-tab {
+  background: none;
+  border: none;
+  border-radius: 999px;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+}
+
+.mini-tab.on {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.mini-tab .n {
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  margin-left: 4px;
 }
 
 .stat {

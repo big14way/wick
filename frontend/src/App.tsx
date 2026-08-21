@@ -37,12 +37,14 @@ const fmt0 = (v: bigint) => trim(formatUnits(v, config.token0Decimals));
 const fmt1 = (v: bigint) => trim(formatUnits(v, config.token1Decimals));
 const trim = (s: string) => {
   const n = Number(s);
+  if (n === 0) return "0";
   return n >= 1000 ? n.toLocaleString("en-US", { maximumFractionDigits: 0 }) : n >= 1 ? n.toFixed(3) : n.toFixed(5);
 };
 const explorer = config.explorerUrl;
 
 export default function App() {
   const wallet = useWallet();
+  const [activityTab, setActivityTab] = useState<"orders" | "fees">("orders");
   const [blockNumber, setBlockNumber] = useState<bigint>(0n);
   const [pool, setPool] = useState<PoolState | null>(null);
   const [minSpan, setMinSpan] = useState<bigint>(1n);
@@ -245,7 +247,7 @@ export default function App() {
       </div>
 
       <div className="grid">
-        <div className="stack">
+        <div className="stack stack-left">
           <Trade
             wallet={wallet}
             orders={orders}
@@ -254,7 +256,9 @@ export default function App() {
             fees={fees}
             maxSpan={maxSpan}
           />
+        </div>
 
+        <div className="stack">
           <section className="card">
             <div className="card-head">
               <h2>The candle</h2>
@@ -278,15 +282,15 @@ export default function App() {
                   currentBlock={blockNumber}
                   revealedClose={pool.revealedClose}
                 />
-                <div className="stat-rows">
+                <div className="stat-inline">
                   <div className="stat">
                     <div className="k">Epoch start</div>
-                    <div className="v mono">{pool.epochStart === 0n ? "idle" : pool.epochStart.toString()}</div>
+                    <div className="v mono">{pool.epochStart === 0n ? "idle" : `#${pool.epochStart.toString()}`}</div>
                   </div>
                   <div className="stat">
                     <div className="k">Window ends</div>
                     <div className="v mono">
-                      {pool.epochStart === 0n ? "idle" : (pool.epochStart + maxSpan - 1n).toString()}
+                      {pool.epochStart === 0n ? "idle" : `#${(pool.epochStart + maxSpan - 1n).toString()}`}
                     </div>
                   </div>
                   <div className="stat">
@@ -303,40 +307,72 @@ export default function App() {
               <div className="empty">Waiting for the first read.</div>
             )}
           </section>
-        </div>
 
-        <div className="stack">
           <section className="card">
             <div className="card-head">
-              <h2>Order feed</h2>
-              <span className="count-chip">{orders.length}</span>
+              <h2>Activity</h2>
+              <div className="mini-tabs" role="tablist">
+                <button
+                  role="tab"
+                  aria-selected={activityTab === "orders"}
+                  className={activityTab === "orders" ? "mini-tab on" : "mini-tab"}
+                  onClick={() => setActivityTab("orders")}
+                >
+                  Protected orders <span className="n">{orders.length}</span>
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={activityTab === "fees"}
+                  className={activityTab === "fees" ? "mini-tab on" : "mini-tab"}
+                  onClick={() => setActivityTab("fees")}
+                >
+                  Instant fees <span className="n">{feeEvents.length}</span>
+                </button>
+              </div>
             </div>
-            <div className="feed">
-              {orders.length === 0 && (
-                <div className="empty">No protected orders yet. Place one from the swap card.</div>
-              )}
-              {orders.slice(0, 40).map((o, i) => (
-                <div className="feed-row" key={i}>
-                  <span className={o.zeroForOne ? "dir zfo" : "dir ofz"}>
-                    {o.zeroForOne ? config.token0Symbol : config.token1Symbol}
-                    <svg width="12" height="10" viewBox="0 0 12 10" aria-hidden="true">
-                      <path d="M1 5h9M7 1.5 10.5 5 7 8.5" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {o.zeroForOne ? config.token1Symbol : config.token0Symbol}
+            {activityTab === "orders" ? (
+              <div className="feed">
+                {orders.length === 0 && (
+                  <div className="empty">No protected orders yet. Place one from the swap card.</div>
+                )}
+                {orders.slice(0, 40).map((o, i) => (
+                  <div className="feed-row" key={i}>
+                    <span className={o.zeroForOne ? "dir zfo" : "dir ofz"}>
+                      {o.zeroForOne ? config.token0Symbol : config.token1Symbol}
+                      <svg width="12" height="10" viewBox="0 0 12 10" aria-hidden="true">
+                        <path d="M1 5h9M7 1.5 10.5 5 7 8.5" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {o.zeroForOne ? config.token1Symbol : config.token0Symbol}
+                    </span>
+                    <span className="mono amt">{o.zeroForOne ? fmt0(o.amountIn) : fmt1(o.amountIn)}</span>
+                    <a className="mono blk" href={`${explorer}/block/${o.block}`} target="_blank" rel="noreferrer">
+                      #{o.block.toString()}
+                    </a>
+                    <a className="mono who" href={`${explorer}/address/${o.owner}`} target="_blank" rel="noreferrer">
+                      {short(o.owner)}
+                    </a>
+                    <span className={orderSettled(o.block) ? "state settled" : "state pending"}>
+                      {orderSettled(o.block) ? "Settled" : "In candle"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="fee-chips">
+                {feeEvents.length === 0 && (
+                  <div className="empty">No instant swaps yet. Pick the Instant lane on the swap card.</div>
+                )}
+                {feeEvents.slice(0, 24).map((f, i) => (
+                  <span
+                    key={i}
+                    className={f.roundTrip ? "chip rt" : "chip"}
+                    title={f.roundTrip ? "Same block round trip surcharge applied" : "Volatility priced fee"}
+                  >
+                    {(f.fee / 10000).toFixed(2)}%{f.roundTrip ? " round trip" : ""}
                   </span>
-                  <span className="mono amt">{o.zeroForOne ? fmt0(o.amountIn) : fmt1(o.amountIn)}</span>
-                  <a className="mono blk" href={`${explorer}/block/${o.block}`} target="_blank" rel="noreferrer">
-                    #{o.block.toString()}
-                  </a>
-                  <a className="mono who" href={`${explorer}/address/${o.owner}`} target="_blank" rel="noreferrer">
-                    {short(o.owner)}
-                  </a>
-                  <span className={orderSettled(o.block) ? "state settled" : "state pending"}>
-                    {orderSettled(o.block) ? "Settled" : "In candle"}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <section className="card">
@@ -389,20 +425,6 @@ export default function App() {
             </div>
           </section>
 
-          <section className="card">
-            <div className="card-head">
-              <h2>Instant lane fees</h2>
-              <span className="count-chip">{feeEvents.length}</span>
-            </div>
-            <div className="fee-chips">
-              {feeEvents.length === 0 && <div className="empty">No instant swaps yet.</div>}
-              {feeEvents.slice(0, 18).map((f, i) => (
-                <span key={i} className={f.roundTrip ? "chip rt" : "chip"} title={f.roundTrip ? "Same block round trip surcharge applied" : "Volatility priced fee"}>
-                  {(f.fee / 10000).toFixed(2)}%{f.roundTrip ? " round trip" : ""}
-                </span>
-              ))}
-            </div>
-          </section>
         </div>
       </div>
 
