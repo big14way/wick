@@ -99,10 +99,12 @@ frontend/                         Vite + React + viem dashboard, the burning can
 
 ```
 bash setup.sh        # clones forge-std, uniswap-hooks, hookmate and their submodules
-forge test           # 16 tests
+forge test           # 25 tests: unit, sandwich sim, fuzz, invariant
 ```
 
 Requires Foundry with solc 0.8.30 and via_ir (already pinned in foundry.toml).
+
+Coverage beyond the unit tests: WickFuzz.t.sol fuzzes the pro rata redeem split, per side conservation, the settlement price bound, and the close range over 256 random sizings each. WickInvariant.t.sol drives random interleavings of orders, instants, cancels, draws, settlements and redeems (32 runs of 48 calls, zero tolerated reverts) and holds four invariants: claim liabilities never exceed hook held balances in either currency, every drawn close lands inside the window, and every settled epoch keeps refund at or below input per side. A gas snapshot lives in .gas-snapshot; the swap path costs, measured through the hookmate router in test_gas_protectedOrderSwap and test_gas_instantSwap, are 198096 gas for a protected order (custody plus claim mint, no curve crossing) and 176761 gas for an instant swap (dynamic fee plus volatility oracle update).
 
 The sandwich receipts:
 
