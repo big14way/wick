@@ -40,11 +40,11 @@ Say:
 
 On screen: dashboard plus the command terminal, side by side.
 
-Do while talking: place a protected swap, show the order appear in the feed and the candle burning, fast forward or wait past the window, run requestClose, show the drawing state, show the reveal and the burn mark on the candle, run settle, show the settled epoch card and redeem.
+Do while talking: connect the wallet, place a protected swap from the swap card, show the order appear in the feed and the candle burning, let the keeper drive the close, the reveal and the settlement on its own, then redeem from the claims list. The whole cycle takes about thirty seconds on Unichain.
 
 Say:
 
-"Here is the live pool on testnet. I place a protected swap. Watch the order feed. The pool price has not moved, my input is in custody and I hold a claim. The candle burns down the window, and the striped band is where it might die. Nobody knows where, including me. The window ends, I request the close, and the VRF draw comes back. There is the burn mark, the candle died at this block. I settle. Both sides cleared at one price, the residual crossed the pool inside the bound, and I redeem my claim for the output."
+"Here is the live pool on testnet. I place a protected swap straight from the dashboard. Watch the order feed. The pool price has not moved, my input is in custody and I hold a claim. The candle burns down the window, and the striped band is where it might die. Nobody knows where, including me. The window ends, the keeper requests the close, and the draw comes back. There is the burn mark, the candle died at this block. Settlement runs by itself. Both sides cleared at one price, the residual crossed the pool inside the bound, and I redeem my claim for the output."
 
 ## 3:00 to 3:40. The receipts
 
@@ -70,7 +70,7 @@ On screen: the UHI-Hook-Data search results or the README novelty section.
 
 Say:
 
-"Atrium publishes every prior hookathon submission, seven hundred and fifteen of them. Zero candle auctions. Zero uniform clearing hooks. Zero probabilistic closes. The nearest neighbors batch or delay swaps, but every one of them has a settlement time the attacker can see coming. Next steps: launch protection mode for new token pools where the candle runs continuously from block one, a keeper network for settlement calls, and gas tuning for mainnet. The repo has sixteen passing tests, the threat model written honestly, and everything you need to run it yourself. Thanks for watching."
+"Atrium publishes every prior hookathon submission, seven hundred and fifteen of them. Zero candle auctions. Zero uniform clearing hooks. Zero probabilistic closes. The nearest neighbors batch or delay swaps, but every one of them has a settlement time the attacker can see coming. Next steps: launch protection mode for new token pools where the candle runs continuously from block one, a keeper network for settlement calls, and gas tuning for mainnet. The repo has twenty six passing tests including fuzz and invariant coverage, the threat model written honestly, and everything you need to run it yourself. Thanks for watching."
 
 ## 4:45. End card
 
