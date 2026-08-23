@@ -45,7 +45,7 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
 
   const flameOut = !idle && phase !== 0;
 
-  const steps = ["Waiting", "Burning", "Drawing", "Revealed"];
+  const steps = ["Lit", "Burning", "Drawing", "Revealed"];
   const activeStep = idle ? 0 : phase === 0 ? 1 : phase === 1 ? 2 : 3;
 
   // Positions along the window track, as percentages of the span.
@@ -81,8 +81,9 @@ export function Candle({ phase, epochStart, minSpan, maxSpan, currentBlock, reve
         </div>
 
         <div className="candle-caption">
-          {expired && "The last window passed empty. The next protected order relights the candle."}
-          {idle && !expired && "No orders yet. The candle lights when the first protected order lands."}
+          {expired &&
+            "Settled and relit. The candle is already burning again; the window refreshes with the next protected order."}
+          {idle && !expired && "Lit and waiting. The first protected order starts the window."}
           {!idle && phase === 0 && "Burning. The close falls somewhere in the striped band, and only the draw knows where."}
           {!idle && phase === 1 && "Window over. Drawing the close block from the randomness provider."}
           {!idle && phase === 2 && `Revealed. The candle died at block ${revealedClose.toString()}. Orders after it roll forward.`}

@@ -1034,3 +1034,37 @@ header.mast {
   font-size: 12px;
   max-width: 640px;
 }
+
+/* Network switcher and randomness badge */
+
+.net-select {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
+  padding-right: 2px;
+}
+
+.net-select option {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.rand-chip {
+  background: var(--ember-dim);
+  border-radius: 999px;
+  color: var(--ember);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 7px 13px;
+  white-space: nowrap;
+}
+
+.rand-chip.vrf {
+  background: rgba(55, 91, 210, 0.16);
+  color: #7f9dff;
+}

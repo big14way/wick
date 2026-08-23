@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPublicClient, http, formatUnits, type Log } from "viem";
 import { wickAbi } from "./abi";
-import { config } from "./config";
+import { config, networks, activeNetworkKey, switchNetwork } from "./config";
 import { Candle } from "./Candle";
 import { Trade, useWallet } from "./Trade";
 
@@ -190,10 +190,24 @@ export default function App() {
           <div className="tagline">Candle auction settlement for Uniswap v4</div>
         </div>
         <div className="mast-right">
-          <span className="net-chip">
-            <span className="pulse" aria-hidden="true" />
-            {config.chainName}
+          <span className={config.randomness.kind === "vrf" ? "rand-chip vrf" : "rand-chip"}>
+            {config.randomness.kind === "vrf" ? "Chainlink VRF" : "Blockhash demo"}
           </span>
+          <label className="net-chip">
+            <span className="pulse" aria-hidden="true" />
+            <select
+              className="net-select"
+              value={activeNetworkKey}
+              onChange={(e) => switchNetwork(e.target.value)}
+              aria-label="Network"
+            >
+              {Object.values(networks).map((n) => (
+                <option key={n.key} value={n.key}>
+                  {n.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <span className="block-chip mono">#{blockNumber.toString()}</span>
           {wallet.account ? (
             wallet.wrongChain ? (
@@ -383,7 +397,8 @@ export default function App() {
             <div className="feed">
               {epochs.length === 0 && <div className="empty">Nothing settled yet. Light a candle first.</div>}
               {epochs.map((e) => {
-                const p1per0 = e.in0 > 0n ? Number(formatUnits(e.out1For0, 18)) / Number(formatUnits(e.in0, 18)) : null;
+                const filled0 = e.in0 - e.refund0;
+                const p1per0 = filled0 > 0n ? Number(formatUnits(e.out1For0, 18)) / Number(formatUnits(filled0, 18)) : null;
                 const fill0 = e.in0 > 0n ? Number(((e.in0 - e.refund0) * 100n) / e.in0) : null;
                 const fill1 = e.in1 > 0n ? Number(((e.in1 - e.refund1) * 100n) / e.in1) : null;
                 return (
@@ -447,8 +462,10 @@ export default function App() {
           </a>
         </div>
         <div className="foot-note">
-          Built on Uniswap v4 hooks for the Atrium UHI10 hookathon. Candle close randomness by Chainlink VRF 2.5 on Base
-          Sepolia; this demo chain uses a blockhash provider, honestly labeled.
+          Built on Uniswap v4 hooks for the Atrium UHI10 hookathon.{" "}
+          {config.randomness.kind === "vrf"
+            ? "Candle close randomness on this chain comes from Chainlink VRF 2.5, the production path."
+            : "This chain draws the candle close from a blockhash provider because Chainlink VRF does not serve it; the same hook runs on Base Sepolia with real VRF 2.5, switchable above."}
         </div>
       </footer>
     </div>
