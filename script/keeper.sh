@@ -24,10 +24,22 @@ POOL_ID=$(cast keccak "$(cast abi-encode "f((address,address,uint24,int24,addres
 MAX_SPAN=$(cast call "$HOOK" "maxSpan()(uint64)" --rpc-url "$RPC_URL")
 echo "keeper watching pool $POOL_ID, maxSpan $MAX_SPAN, poll ${POLL}s"
 
+SETTLE_FAILS=0
+
 send() {
-  cast send "$HOOK" "$1((address,address,uint24,int24,address))" "$POOL_KEY" \
-    --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" >/dev/null 2>&1 \
-    && echo "$(date +%T) $1 sent" || echo "$(date +%T) $1 reverted (fine, phase may have moved)"
+  if cast send "$HOOK" "$1((address,address,uint24,int24,address))" "$POOL_KEY" \
+    --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" >/dev/null 2>&1; then
+    echo "$(date +%T) $1 sent"
+    [ "$1" = "settle" ] && SETTLE_FAILS=0
+  else
+    echo "$(date +%T) $1 reverted (fine, phase may have moved)"
+    if [ "$1" = "settle" ]; then
+      SETTLE_FAILS=$((SETTLE_FAILS + 1))
+      if [ "$SETTLE_FAILS" -ge 3 ]; then
+        echo "$(date +%T) settle has reverted $SETTLE_FAILS times. The price is likely outside the settlement bound around the snapshot. Push it back toward the snapshot tick and settle will go through. Funds stay custodied meanwhile."
+      fi
+    fi
+  fi
 }
 
 while true; do
