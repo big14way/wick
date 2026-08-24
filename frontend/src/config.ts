@@ -38,21 +38,21 @@ export const networks: Record<string, NetworkConfig> = {
     chainId: 1301,
     chainName: "Unichain Sepolia",
     explorerUrl: "https://sepolia.uniscan.xyz",
-    hookAddress: "0xdb51948ce7b6E6C038004c924bdb4851e57430c8",
+    hookAddress: "0x22916F75eDB48a3d66fEB680bB428a901e1D30c8",
     routerAddress: "0x9cD2b0a732dd5e023a5539921e0FD1c30E198Dba",
     walletConnectProjectId: WC_PROJECT_ID,
     // Demo chain: Chainlink VRF does not serve Unichain Sepolia, so the candle
     // draws from a blockhash provider here. The VRF path runs on Base Sepolia.
-    randomness: { kind: "blockhash", address: "0xd046d5a5302ff997c81275c61bf64e1eef02fc93" },
+    randomness: { kind: "blockhash", address: "0x801A6D9eF9E96Fb2958B9F49E03cb73fA2CC5e11" },
     poolKey: {
       currency0: "0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831", // WICKA
       currency1: "0xa97c20Fd92efeb66DD7458c9C5dfd3F2b7B2BA7e", // WICKB
       fee: 8388608, // LPFeeLibrary.DYNAMIC_FEE_FLAG
       tickSpacing: 60,
-      hooks: "0xdb51948ce7b6E6C038004c924bdb4851e57430c8",
+      hooks: "0x22916F75eDB48a3d66fEB680bB428a901e1D30c8",
     },
-    poolId: "0xccd0fae511172bd494561750f3310e280531898f4ac4b82e6da76cc5892c3115",
-    deployBlock: 60116497n,
+    poolId: "0xe83effd1920066d6708f46a248bc87f5681c1fc2557b0b2c8ddaf9b551e16ffa",
+    deployBlock: 60721426n,
     token0Symbol: "WICKA",
     token1Symbol: "WICKB",
     token0Decimals: 18,
