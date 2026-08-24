@@ -115,6 +115,7 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
     uint24 public volFeePerTick = 25; // added per EMA tick of realized volatility
     uint24 public roundTripSurcharge = 30_000; // 3 percent extra on same-block round trips
     uint24 public batchFee = 500; // 0.05 percent on the settlement residual, clean flow
+    uint24 public constant maxInstantFee = 100_000; // 10 percent ceiling on the instant lane
     uint16 public keeperTipPips = 0; // share of epoch output paid to the settle caller
 
     // Same-block round-trip detector: (pool, block, origin) to direction bitmask.
@@ -311,7 +312,10 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
             if (uint64(block.number) > ps.lastTickBlock) {
                 int24 d = tick - ps.lastTick;
                 uint24 absd = uint24(uint256(int256(d >= 0 ? d : -d)));
-                ps.volEma = (ps.volEma * 3 + absd) / 4;
+                // Quiet blocks between swaps decay the EMA before this block's
+                // move blends in, so a spike heals with time alone.
+                uint24 ema = _decayedVolEma(ps.volEma, uint64(block.number) - ps.lastTickBlock - 1);
+                ps.volEma = (ema * 3 + absd) / 4;
                 ps.lastTickBlock = uint64(block.number);
             }
             ps.lastTick = tick;
@@ -526,8 +530,9 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
         // Residual crosses the curve, bounded to the snapshot tick plus or minus the
         // deviation cap. The swap stops at the bound and the untraded input is
         // refunded pro rata. If the price already sits beyond the bound when settle
-        // runs, v4 rejects the swap and the whole settle reverts until price comes
-        // back inside; funds stay custodied meanwhile (see SettleGrief.t.sol).
+        // runs (someone shoved it after the snapshot), the residual fills nothing
+        // and is refunded in full instead of blocking settlement: the candle always
+        // settles, griefing only denies the residual its fill.
         if (residualIn > 0) {
             int24 boundTick = residualZeroForOne
                 ? ps.snapshotTick - maxSettleDeviationTicks
@@ -535,35 +540,14 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
             if (boundTick < TickMath.MIN_TICK + 1) boundTick = TickMath.MIN_TICK + 1;
             if (boundTick > TickMath.MAX_TICK - 1) boundTick = TickMath.MAX_TICK - 1;
 
-            BalanceDelta d = poolManager.swap(
-                key,
-                SwapParams({
-                    zeroForOne: residualZeroForOne,
-                    amountSpecified: -int256(residualIn),
-                    sqrtPriceLimitX96: TickMath.getSqrtPriceAtTick(boundTick)
-                }),
-                ""
-            );
-
-            uint256 actualIn;
-            uint256 actualOut;
-            if (residualZeroForOne) {
-                actualIn = uint256(uint128(-d.amount0()));
-                actualOut = uint256(uint128(d.amount1()));
-                r.out1For0 += uint128(actualOut);
-                r.refund0 = uint128(residualIn - actualIn);
+            uint160 limitSqrtP = TickMath.getSqrtPriceAtTick(boundTick);
+            (uint160 nowSqrtP,,,) = poolManager.getSlot0(pid);
+            bool pastBound = residualZeroForOne ? nowSqrtP <= limitSqrtP : nowSqrtP >= limitSqrtP;
+            if (pastBound) {
+                if (residualZeroForOne) r.refund0 = uint128(residualIn);
+                else r.refund1 = uint128(residualIn);
             } else {
-                actualIn = uint256(uint128(-d.amount1()));
-                actualOut = uint256(uint128(d.amount0()));
-                r.out0For1 += uint128(actualOut);
-                r.refund1 = uint128(residualIn - actualIn);
-            }
-
-            if (actualIn > 0) {
-                Currency inC = residualZeroForOne ? key.currency0 : key.currency1;
-                Currency outC = residualZeroForOne ? key.currency1 : key.currency0;
-                inC.settle(poolManager, address(this), actualIn, true);
-                outC.take(poolManager, address(this), actualOut, true);
+                _pushResidual(key, r, residualZeroForOne, residualIn, limitSqrtP);
             }
         }
 
@@ -593,6 +577,47 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
         emit CandleLit(pid, ps.epochStart, ps.epochStart + maxSpan - 1);
     }
 
+    /// @dev Push the residual through the pool up to the price limit and record
+    /// what actually traded; the unfilled remainder becomes the side's refund.
+    function _pushResidual(
+        PoolKey memory key,
+        EpochResult memory r,
+        bool residualZeroForOne,
+        uint256 residualIn,
+        uint160 limitSqrtP
+    ) internal {
+        BalanceDelta d = poolManager.swap(
+            key,
+            SwapParams({
+                zeroForOne: residualZeroForOne,
+                amountSpecified: -int256(residualIn),
+                sqrtPriceLimitX96: limitSqrtP
+            }),
+            ""
+        );
+
+        uint256 actualIn;
+        uint256 actualOut;
+        if (residualZeroForOne) {
+            actualIn = uint256(uint128(-d.amount0()));
+            actualOut = uint256(uint128(d.amount1()));
+            r.out1For0 += uint128(actualOut);
+            r.refund0 = uint128(residualIn - actualIn);
+        } else {
+            actualIn = uint256(uint128(-d.amount1()));
+            actualOut = uint256(uint128(d.amount0()));
+            r.out0For1 += uint128(actualOut);
+            r.refund1 = uint128(residualIn - actualIn);
+        }
+
+        if (actualIn > 0) {
+            Currency inC = residualZeroForOne ? key.currency0 : key.currency1;
+            Currency outC = residualZeroForOne ? key.currency1 : key.currency0;
+            inC.settle(poolManager, address(this), actualIn, true);
+            outC.take(poolManager, address(this), actualOut, true);
+        }
+    }
+
     // ---------------------------------------------------------------
     // Internal helpers
     // ---------------------------------------------------------------
@@ -608,15 +633,31 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
 
     function _instantFee(PoolId pid, bool zeroForOne) internal view returns (uint24 fee, bool roundTrip) {
         PoolState storage ps = pools[pid];
-        uint256 f = uint256(instantBaseFee) + uint256(ps.volEma) * volFeePerTick;
+        uint24 ema = ps.volEma;
+        if (uint64(block.number) > ps.lastTickBlock) {
+            ema = _decayedVolEma(ema, uint64(block.number) - ps.lastTickBlock);
+        }
+        uint256 f = uint256(instantBaseFee) + uint256(ema) * volFeePerTick;
         uint8 mask = _dirSeen[keccak256(abi.encode(pid, block.number, tx.origin))];
         uint8 oppositeBit = zeroForOne ? 2 : 1;
         if (mask & oppositeBit != 0) {
             roundTrip = true;
             f += roundTripSurcharge;
         }
-        if (f > LPFeeLibrary.MAX_LP_FEE) f = LPFeeLibrary.MAX_LP_FEE;
+        // Hard ceiling. The instant lane may charge a lot, it may never charge
+        // everything: past this, flow belongs in the protected lane anyway.
+        if (f > maxInstantFee) f = maxInstantFee;
         fee = uint24(f);
+    }
+
+    /// @dev EMA loses a quarter of its value for every quiet block. Forty steps
+    /// round to zero, so the loop is capped there.
+    function _decayedVolEma(uint24 ema, uint64 quietBlocks) internal pure returns (uint24) {
+        if (quietBlocks >= 40) return 0;
+        for (uint64 i = 0; i < quietBlocks; i++) {
+            ema = (ema * 3) / 4;
+        }
+        return ema;
     }
 
     /// @dev Lazy epoch bookkeeping on order placement: light the first candle, and if

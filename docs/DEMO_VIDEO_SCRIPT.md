@@ -70,7 +70,7 @@ On screen: the UHI-Hook-Data search results or the README novelty section.
 
 Say:
 
-"Atrium publishes every prior hookathon submission, seven hundred and fifteen of them. Zero candle auctions. Zero uniform clearing hooks. Zero probabilistic closes. The nearest neighbors batch or delay swaps, but every one of them has a settlement time the attacker can see coming. Next steps: launch protection mode for new token pools where the candle runs continuously from block one, a keeper network for settlement calls, and gas tuning for mainnet. The repo has twenty six passing tests including fuzz and invariant coverage, the threat model written honestly, and everything you need to run it yourself. Thanks for watching."
+"Atrium publishes every prior hookathon submission, seven hundred and fifteen of them. Zero candle auctions. Zero uniform clearing hooks. Zero probabilistic closes. The nearest neighbors batch or delay swaps, but every one of them has a settlement time the attacker can see coming. Next steps: launch protection mode for new token pools where the candle runs continuously from block one, a keeper network for settlement calls, and gas tuning for mainnet. The repo has forty nine passing tests including fuzz and invariant coverage, the threat model written honestly, and everything you need to run it yourself. Thanks for watching."
 
 ## 4:45. End card
 

@@ -64,7 +64,7 @@ forge build
 forge test
 ```
 
-Expected: 16 tests pass (7 WickHook, 3 SandwichSim, 6 template EasyPosm tests). foundry.toml pins solc 0.8.30, evm_version cancun, optimizer 200 runs, via_ir true. First build takes a few minutes because of via_ir.
+Expected: 49 tests pass (unit, sandwich sim, fuzz, invariant, guards, providers, template). foundry.toml pins solc 0.8.30, evm_version cancun, optimizer 200 runs, via_ir true. First build takes a few minutes because of via_ir.
 
 Known good numbers from the container run on Aug 13 2026:
 
@@ -103,7 +103,7 @@ Dataset github.com/AtriumAcademy/UHI-Hook-Data, 715 rows of prior submissions. Z
 
 ## Threat model notes for honest answers
 
-The settle brick edge: an attacker can push price past the settlement bound to make settle revert until price returns. Funds stay custodied, this is griefing not theft. Say it plainly if judges ask. The blockhash provider is biasable and exists only for local demos. The protected lane costs a few blocks of latency by design.
+The settle griefing edge is fixed in code: pushing price past the settlement bound no longer blocks settle. The candle settles anyway, the residual fills nothing and refunds pro rata (test_settle_neverBricks_refundsBeyondBound). The instant fee is hard capped at 10 percent and the volatility EMA decays a quarter per quiet block. Say it plainly if judges ask. The blockhash provider is biasable and exists only for local demos. The protected lane costs a few blocks of latency by design.
 
 ## Discipline
 

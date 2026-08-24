@@ -278,7 +278,7 @@ export function Trade({
       return null; // malformed input
     }
   })();
-  const instantFeeBps = fees ? fees.base + fees.perTick * volEma : null;
+  const instantFeeBps = fees ? Math.min(fees.base + fees.perTick * volEma, 100000) : null;
   const estimateOut = (() => {
     if (!parsedAmount || parsedAmount <= 0n) return null;
     const inNum = Number(formatUnits(parsedAmount, inDecimals));

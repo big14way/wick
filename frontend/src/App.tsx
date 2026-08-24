@@ -14,8 +14,15 @@ type PoolState = {
   epochCount: bigint;
   snapshotTick: number;
   lastTick: number;
+  lastTickBlock: bigint;
   volEma: number;
 };
+
+// Mirrors WickHook: the EMA loses a quarter per quiet block, and the instant
+// fee never exceeds this ceiling.
+const MAX_INSTANT_FEE = 100000;
+const decayedVolEma = (ema: number, quietBlocks: number) =>
+  quietBlocks >= 40 ? 0 : ema * Math.pow(0.75, Math.max(quietBlocks, 0));
 
 type OrderEvt = { block: bigint; zeroForOne: boolean; amountIn: bigint; owner: string; claimId: bigint };
 type FeeEvt = { fee: number; roundTrip: boolean; origin: string };
@@ -98,6 +105,7 @@ export default function App() {
           epochCount: BigInt(ps[3]),
           snapshotTick: Number(ps[5]),
           lastTick: Number(ps[6]),
+          lastTickBlock: ps[7],
           volEma: Number(ps[8]),
         });
 
@@ -178,7 +186,8 @@ export default function App() {
 
   const orderSettled = (block: bigint) => epochs.some((e) => e.startBlock <= block && block <= e.closeBlock);
 
-  const instantFeeNow = fees && pool ? fees.base + fees.perTick * pool.volEma : null;
+  const effVolEma = pool ? Math.round(decayedVolEma(pool.volEma, Number(blockNumber - pool.lastTickBlock))) : 0;
+  const instantFeeNow = fees && pool ? Math.min(fees.base + fees.perTick * effVolEma, MAX_INSTANT_FEE) : null;
 
   return (
     <div className="shell">
@@ -255,7 +264,7 @@ export default function App() {
           <div className="k">Instant fee now</div>
           <div className="v">{instantFeeNow !== null ? `${(instantFeeNow / 10000).toFixed(2)}%` : "..."}</div>
           <div className="c">
-            {pool && fees ? `${(fees.base / 10000).toFixed(2)}% base + ${pool.volEma} vol ticks` : "reading"}
+            {pool && fees ? `${(fees.base / 10000).toFixed(2)}% base + ${effVolEma} vol ticks` : "reading"}
           </div>
         </div>
       </div>
@@ -266,7 +275,7 @@ export default function App() {
             wallet={wallet}
             orders={orders}
             lastTick={pool?.lastTick ?? 0}
-            volEma={pool?.volEma ?? 0}
+            volEma={effVolEma}
             fees={fees}
             maxSpan={maxSpan}
           />

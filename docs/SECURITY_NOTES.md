@@ -5,9 +5,9 @@ A self audit. Wick has not had an external audit, so this document does what a h
 ## Scope and tools
 
 - src/WickHook.sol, src/randomness/BlockhashProvider.sol, src/randomness/ChainlinkVRFProvider.sol
-- forge test: 46 tests passing (unit, sandwich simulation, fuzz, invariant, guard paths, providers)
-- forge coverage (ir-minimum): 99.35 percent lines, 98.39 percent statements, 92.65 percent branches, 100 percent functions across src
-- forge lint: 15 warnings, all unsafe-typecast, dispositioned below
+- forge test: 49 tests passing (unit, sandwich simulation, fuzz, invariant, guard paths, providers)
+- forge coverage (ir-minimum): 98.77 percent lines, 98.22 percent statements, 91.89 percent branches, 100 percent functions across src
+- forge lint: 17 warnings, all unsafe-typecast, dispositioned below
 - Invariant campaign: random interleavings of orders, instants, cancels, draws, settles and redeems, 32 runs of 48 calls, zero tolerated reverts, holding solvency in both currencies, close in window, and refund at most input per side
 
 ## Claims mapped to tests
@@ -20,20 +20,23 @@ A self audit. Wick has not had an external audit, so this document does what a h
 | Redeem splits pro rata, never overpays, dust bounded | testFuzz_redeem_proRata |
 | Refund never exceeds input per side | testFuzz_netting_conservation, invariant_epochConservation |
 | Settlement price move bounded around the snapshot | testFuzz_netting_conservation |
-| Settle griefing delays but cannot steal, recovery works, tip pays | test_settle_bricksOutsideBoundThenRecovers |
+| Settle cannot be blocked by a price shove, residual refunds | test_settle_neverBricks_refundsBeyondBound |
+| Keeper tip pays the settle caller | test_settle_paysKeeperTipOnNormalPath |
+| Instant fee hard capped, output always survives | test_instantFee_hardCappedAtCeiling |
+| Volatility EMA heals with quiet time | test_volEma_decaysWithQuietTime |
 | Sandwich attack unprofitable against Wick | test_wick_protectedVictimStarvesTheSandwich |
 | Every guard revert fires | WickGuards.t.sol, 13 tests |
 | Both randomness providers gate callers and fulfill once | RandomnessProviders.t.sol, 7 tests |
 
 ## Findings and dispositions
 
-1. Settle reverts when price already sits beyond the deviation bound. The residual swap cannot start (v4 rejects a price limit already exceeded), so settle reverts until price returns inside the bound. Funds stay custodied and are never lost. This is the documented griefing edge: it delays, it does not steal. Proven both directions in SettleGrief.t.sol. The keeper script detects repeated settle reverts and prints the recovery instruction.
+1. Settlement liveness under price griefing. If the price sits beyond the deviation bound when settle runs, the residual swap is skipped entirely: the epoch settles, the residual fills nothing, and the whole residual is refunded pro rata. Settlement can never be blocked by shoving the price. An earlier revision reverted in this case (delaying settlement until price returned); the deployed version settles through it. Proven in test_settle_neverBricks_refundsBeyondBound.
 
-2. Fifteen unsafe-typecast lint warnings, all accepted deliberately. The uint128 casts on order input are guarded by an explicit AmountTooLarge check in beforeSwap. The casts inside settle truncate values already bounded by uint128 bucket sums and by v4 swap deltas, which fit int128 by protocol construction. The uint24 fee cast follows an explicit clamp to MAX_LP_FEE. The source is not being churned to silence a linter this close to submission; the reasoning lives here instead.
+2. Seventeen unsafe-typecast lint warnings, all accepted deliberately. The uint128 casts on order input are guarded by an explicit AmountTooLarge check in beforeSwap. The casts inside settle truncate values already bounded by uint128 bucket sums and by v4 swap deltas, which fit int128 by protocol construction. The uint24 fee cast follows an explicit clamp to MAX_LP_FEE. The source is not being churned to silence a linter this close to submission; the reasoning lives here instead.
 
 3. tx.origin is used for two things: the default claim owner when hookData is empty, and same block round trip detection on the instant lane. The owner default is a convenience with an explicit override (encode the owner in hookData); routers that batch for many users should always pass the override. Round trip detection catches the naive single wallet sandwich shape only; an attacker splitting across two origins pays the volatility premium without the surcharge. The custody lane, not the surcharge, is the defense against sophisticated attackers.
 
-4. Instant fee can pin at the 100 percent cap after a violent price move. The volatility EMA can spike so high that the clamped fee eats any instant input entirely, which effectively pauses the instant lane until the EMA decays (a quarter of the gap per block containing a swap). Protected orders, settlement and redemption are unaffected. The owner can also lower volFeePerTick live within its bound. Observed and recovered on the live Unichain deployment; the recovery needs nothing but time or dust swaps.
+4. Instant fee after a violent move. The volatility EMA spikes with the move, but the fee is hard capped at maxInstantFee (10 percent), so the instant lane always delivers output and can never consume an entire input, and the EMA decays by a quarter for every quiet block regardless of trading, so the spike heals with time alone. Proven in test_instantFee_hardCappedAtCeiling and test_volEma_decaysWithQuietTime. An earlier revision clamped at 100 percent and decayed only on swap blocks, which could effectively pause the lane after chaos; that behavior was observed live, diagnosed, and is fixed in the deployed version.
 
 5. Blockhash randomness is proposer biasable. The provider exists because no VRF grade service runs on Unichain Sepolia today: verified against the Chainlink VRF 2.5 supported networks page and the Pyth Entropy chain list on Aug 24 2026, neither serves it. It is labeled demo only in code, README and UI. The production path, ChainlinkVRFProvider, runs live on Base Sepolia with a settled epoch to show. The provider interface is one function each way, ready for whichever service reaches Unichain first.
 
@@ -47,4 +50,4 @@ A self audit. Wick has not had an external audit, so this document does what a h
 
 - The protected lane costs a few blocks of latency by design.
 - Dynamic fee pools are not routed natively by the Uniswap interface; use the bundled dashboard or any custom router.
-- Deployed testnet bytecode predates none of the source changes: src has not changed since the first commit, so the published addresses run exactly the code in this repo.
+- The published testnet addresses run exactly the code in this repo: both chains were redeployed after the settlement liveness and fee cap fixes landed.

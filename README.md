@@ -64,9 +64,9 @@ Instant lane. Executes immediately but pays a dynamic premium: a base fee, plus 
 - Sandwiching a protected order: impossible. Custody means no price impact at order time, and the uniform clearing price means order position inside the epoch is irrelevant.
 - Sniping the close: the close is drawn after the window ends and applied retroactively. When your transaction landed, the close did not exist.
 - Attacking the settlement swap: the residual is public before settle executes. But netting means the residual is small, everyone shares one price so there is no victim slice to carve out, and the tick bound caps how far the settlement can move. Our test suite shows a textbook sandwich that nets +7.87 tokens against a vanilla pool loses 0.33 tokens against Wick on identical liquidity.
-- Griefing the settle call: an attacker who pushes price past the bound in the batch direction before settle makes that settle attempt revert until price returns. Funds stay in custody and are never lost. This delays, it does not steal. A keeper tip (owner knob) makes retrying worthwhile.
+- Griefing the settle call: an attacker who pushes price past the bound after the snapshot cannot block settlement. The candle settles anyway; the residual simply fills nothing and comes back as a pro rata refund. The attack buys nothing but the cost of the shove. Proven in SettleGrief.t.sol.
 - Randomness: the provider is pluggable. Production config uses Chainlink VRF 2.5. The blockhash provider included for local demos is proposer biasable and says so in its own comments.
-- Volatility fee pinning: a violent price move spikes the tick EMA, which can pin the instant lane fee at the 100 percent cap until the EMA decays (it falls by a quarter each block that contains a swap). Protected orders, settlement and redemption are unaffected. This is the fee doing its job after chaos, priced conservatively, and it heals on its own.
+- Volatility fee after chaos: a violent price move spikes the tick EMA and with it the instant fee, but the fee is hard capped at 10 percent (maxInstantFee) so the lane never consumes an entire input, and the EMA loses a quarter of its value for every quiet block, so the spike heals with time alone. Protected orders, settlement and redemption are unaffected throughout.
 - Round trip detection keys on tx.origin, which catches the naive single wallet sandwich shape. A determined attacker splits across two origins and pays only the volatility premium twice. The surcharge raises the cost of the lazy attack, the custody lane removes the target of the sophisticated one.
 - Cost of protection: the protected lane waits a few blocks. That is the product tradeoff, stated plainly: instant execution with a premium, or patient execution with structural immunity.
 
@@ -105,12 +105,12 @@ frontend/                         Vite + React + viem dashboard, the burning can
 
 ```
 bash setup.sh        # clones forge-std, uniswap-hooks, hookmate and their submodules
-forge test           # 46 tests: unit, sandwich sim, fuzz, invariant, guards, providers
+forge test           # 49 tests: unit, sandwich sim, fuzz, invariant, guards, providers
 ```
 
 Requires Foundry with solc 0.8.30 and via_ir (already pinned in foundry.toml).
 
-Coverage beyond the unit tests: WickFuzz.t.sol fuzzes the pro rata redeem split, per side conservation, the settlement price bound, and the close range over 256 random sizings each. WickInvariant.t.sol drives random interleavings of orders, instants, cancels, draws, settlements and redeems (32 runs of 48 calls, zero tolerated reverts) and holds four invariants: claim liabilities never exceed hook held balances in either currency, every drawn close lands inside the window, and every settled epoch keeps refund at or below input per side. WickGuards.t.sol fires every guard revert and owner knob bound, and RandomnessProviders.t.sol covers both providers to 100 percent. forge coverage prints 99.35 percent lines, 92.65 percent branches and 100 percent functions across src. Findings from a self audit pass, each mapped to the test that proves it, live in docs/SECURITY_NOTES.md.
+Coverage beyond the unit tests: WickFuzz.t.sol fuzzes the pro rata redeem split, per side conservation, the settlement price bound, and the close range over 256 random sizings each. WickInvariant.t.sol drives random interleavings of orders, instants, cancels, draws, settlements and redeems (32 runs of 48 calls, zero tolerated reverts) and holds four invariants: claim liabilities never exceed hook held balances in either currency, every drawn close lands inside the window, and every settled epoch keeps refund at or below input per side. WickGuards.t.sol fires every guard revert and owner knob bound, and RandomnessProviders.t.sol covers both providers to 100 percent. forge coverage prints 98.77 percent lines, 91.89 percent branches and 100 percent functions across src. Findings from a self audit pass, each mapped to the test that proves it, live in docs/SECURITY_NOTES.md.
 
 A gas snapshot lives in .gas-snapshot; the swap path costs, measured through the hookmate router in test_gas_protectedOrderSwap and test_gas_instantSwap, are 198096 gas for a protected order (custody plus claim mint, no curve crossing) and 176761 gas for an instant swap (dynamic fee plus volatility oracle update).
 
