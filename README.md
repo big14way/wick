@@ -105,12 +105,14 @@ frontend/                         Vite + React + viem dashboard, the burning can
 
 ```
 bash setup.sh        # clones forge-std, uniswap-hooks, hookmate and their submodules
-forge test           # 26 tests: unit, sandwich sim, fuzz, invariant, grief recovery
+forge test           # 46 tests: unit, sandwich sim, fuzz, invariant, guards, providers
 ```
 
 Requires Foundry with solc 0.8.30 and via_ir (already pinned in foundry.toml).
 
-Coverage beyond the unit tests: WickFuzz.t.sol fuzzes the pro rata redeem split, per side conservation, the settlement price bound, and the close range over 256 random sizings each. WickInvariant.t.sol drives random interleavings of orders, instants, cancels, draws, settlements and redeems (32 runs of 48 calls, zero tolerated reverts) and holds four invariants: claim liabilities never exceed hook held balances in either currency, every drawn close lands inside the window, and every settled epoch keeps refund at or below input per side. A gas snapshot lives in .gas-snapshot; the swap path costs, measured through the hookmate router in test_gas_protectedOrderSwap and test_gas_instantSwap, are 198096 gas for a protected order (custody plus claim mint, no curve crossing) and 176761 gas for an instant swap (dynamic fee plus volatility oracle update).
+Coverage beyond the unit tests: WickFuzz.t.sol fuzzes the pro rata redeem split, per side conservation, the settlement price bound, and the close range over 256 random sizings each. WickInvariant.t.sol drives random interleavings of orders, instants, cancels, draws, settlements and redeems (32 runs of 48 calls, zero tolerated reverts) and holds four invariants: claim liabilities never exceed hook held balances in either currency, every drawn close lands inside the window, and every settled epoch keeps refund at or below input per side. WickGuards.t.sol fires every guard revert and owner knob bound, and RandomnessProviders.t.sol covers both providers to 100 percent. forge coverage prints 99.35 percent lines, 92.65 percent branches and 100 percent functions across src. Findings from a self audit pass, each mapped to the test that proves it, live in docs/SECURITY_NOTES.md.
+
+A gas snapshot lives in .gas-snapshot; the swap path costs, measured through the hookmate router in test_gas_protectedOrderSwap and test_gas_instantSwap, are 198096 gas for a protected order (custody plus claim mint, no curve crossing) and 176761 gas for an instant swap (dynamic fee plus volatility oracle update).
 
 The sandwich receipts:
 
@@ -136,7 +138,7 @@ Then set the printed hook address into script/base/BaseScript.sol (hookContract)
 
 ## Live deployments
 
-Unichain Sepolia (chain 1301), primary demo. Randomness is the BlockhashProvider because Chainlink VRF does not support Unichain Sepolia. Fine for a demo, biasable by a proposer, not for value at risk.
+Unichain Sepolia (chain 1301), primary demo. Randomness is the BlockhashProvider because no VRF grade service runs on Unichain Sepolia today (checked against both the Chainlink VRF 2.5 supported networks and the Pyth Entropy chain list). Fine for a demo, biasable by a proposer, not for value at risk; the provider interface is ready for whichever service arrives first.
 
 | Contract | Address |
 | --- | --- |
