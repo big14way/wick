@@ -66,6 +66,8 @@ Instant lane. Executes immediately but pays a dynamic premium: a base fee, plus 
 - Attacking the settlement swap: the residual is public before settle executes. But netting means the residual is small, everyone shares one price so there is no victim slice to carve out, and the tick bound caps how far the settlement can move. Our test suite shows a textbook sandwich that nets +7.87 tokens against a vanilla pool loses 0.33 tokens against Wick on identical liquidity.
 - Griefing the settle call: an attacker who pushes price past the bound in the batch direction before settle makes that settle attempt revert until price returns. Funds stay in custody and are never lost. This delays, it does not steal. A keeper tip (owner knob) makes retrying worthwhile.
 - Randomness: the provider is pluggable. Production config uses Chainlink VRF 2.5. The blockhash provider included for local demos is proposer biasable and says so in its own comments.
+- Volatility fee pinning: a violent price move spikes the tick EMA, which can pin the instant lane fee at the 100 percent cap until the EMA decays (it falls by a quarter each block that contains a swap). Protected orders, settlement and redemption are unaffected. This is the fee doing its job after chaos, priced conservatively, and it heals on its own.
+- Round trip detection keys on tx.origin, which catches the naive single wallet sandwich shape. A determined attacker splits across two origins and pays only the volatility premium twice. The surcharge raises the cost of the lazy attack, the custody lane removes the target of the sophisticated one.
 - Cost of protection: the protected lane waits a few blocks. That is the product tradeoff, stated plainly: instant execution with a premium, or patient execution with structural immunity.
 
 ## Why this is new
@@ -92,6 +94,10 @@ src/randomness/BlockhashProvider.sol      local demo randomness, biasable, label
 script/00_DeployHook.s.sol        env driven deploy, mines hook flags, wires provider
 test/WickHook.t.sol               7 tests: custody, uniform price, netting, fees, cancel, rollover
 test/SandwichSim.t.sol            3 tests: vanilla pool vs Wick under the same sandwich
+test/WickFuzz.t.sol               fuzz: pro rata, conservation, price bound, close range, gas
+test/WickInvariant.t.sol          invariants over random lifecycle interleavings
+test/SettleGrief.t.sol            settle griefing is temporary, keeper tip pays
+script/keeper.sh                  polls the hook, drives close, reveal and settle
 frontend/                         Vite + React + viem dashboard, the burning candle UI
 ```
 
@@ -99,7 +105,7 @@ frontend/                         Vite + React + viem dashboard, the burning can
 
 ```
 bash setup.sh        # clones forge-std, uniswap-hooks, hookmate and their submodules
-forge test           # 25 tests: unit, sandwich sim, fuzz, invariant
+forge test           # 26 tests: unit, sandwich sim, fuzz, invariant, grief recovery
 ```
 
 Requires Foundry with solc 0.8.30 and via_ir (already pinned in foundry.toml).
@@ -157,7 +163,7 @@ Pool id 0x4225440c775b36d1e5e4794cff503e8619d0a2ff21d2771af82f2c4b91a8dae3, depl
 - Originality (30): first candle auction settlement hook, first uniform clearing price hook, receipts from the official dataset above.
 - Execution (25): full lifecycle implemented and tested, custody matches the audited BaseAsyncSwap pattern, settlement is bounded and refund safe, pluggable VRF.
 - Impact (20): protected lane removes the largest per user MEV tax; instant lane converts toxic flow into LP yield, which is sustainable liquidity in one sentence.
-- Functionality (15): 16 passing tests including an adversarial sandwich simulation against a control pool.
+- Functionality (15): 26 passing tests including fuzz, invariant, and an adversarial sandwich simulation against a control pool.
 - Presentation (10): live dashboard with the burning candle, demo video, this document.
 
 ## License

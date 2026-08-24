@@ -524,9 +524,10 @@ contract WickHook is BaseHook, ERC6909, Owned, IRandomnessConsumer {
         }
 
         // Residual crosses the curve, bounded to the snapshot tick plus or minus the
-        // deviation cap. If someone shoved the price outside the bound, the swap
-        // partially fills or fills nothing, and the untraded input is refunded pro
-        // rata. Attacking the settlement is capped by construction.
+        // deviation cap. The swap stops at the bound and the untraded input is
+        // refunded pro rata. If the price already sits beyond the bound when settle
+        // runs, v4 rejects the swap and the whole settle reverts until price comes
+        // back inside; funds stay custodied meanwhile (see SettleGrief.t.sol).
         if (residualIn > 0) {
             int24 boundTick = residualZeroForOne
                 ? ps.snapshotTick - maxSettleDeviationTicks

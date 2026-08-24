@@ -6,7 +6,7 @@ Prep before recording:
 
 - Dashboard running with the hook deployed and at least one settled epoch already on screen.
 - A terminal with big font ready to run `forge test --match-path "test/SandwichSim.t.sol" -vv`.
-- A second terminal ready with the cast or script commands for a live protected swap, requestClose, and settle.
+- The keeper running (script/keeper.sh) so close, reveal and settle happen on their own during the demo, and a wallet connected with test tokens for the on camera swap.
 - README open in a tab for the architecture diagram.
 - Close notifications. Full screen the windows you will show.
 
