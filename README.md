@@ -70,14 +70,6 @@ Instant lane. Executes immediately but pays a dynamic premium: a base fee, plus 
 - Round trip detection keys on tx.origin, which catches the naive single wallet sandwich shape. A determined attacker splits across two origins and pays only the volatility premium twice. The surcharge raises the cost of the lazy attack, the custody lane removes the target of the sophisticated one.
 - Cost of protection: the protected lane waits a few blocks. That is the product tradeoff, stated plainly: instant execution with a premium, or patient execution with structural immunity.
 
-## Agents and privacy
-
-Two questions worth answering plainly.
-
-Agents. Wick is built to be operated by bots, not protected from them. Settlement is permissionless and pays a keeper tip, so anyone's agent can race to call requestClose and settle, and the repo ships a reference keeper that runs the whole lifecycle unattended (script/keeper.sh, live on both testnets). More interesting is what the candle does to the agent game itself: most MEV agents monetize latency, and latency only pays when there is a deadline to win. A close block that does not exist yet when your transaction lands makes speed worthless around settlement. Trading agents that route user flow through the protected lane inherit structural immunity without trusting a relay.
-
-Privacy. Wick is not a privacy protocol and does not pretend to be. Pending orders are public: amount, direction, and the claim owner are all on chain the moment an order lands. The design removes the value of that information instead of hiding it. A sandwich needs a victim execution to straddle; custody means there is no execution at order time, and one uniform price per side means position inside the batch carries no edge, so seeing your order tells an attacker nothing they can monetize. Content hiding approaches (encrypted mempools, commit reveal) attack the same problem from the other side and would compose cleanly with the candle if a pool wanted both.
-
 ## Why this is new
 
 Atrium publishes a dataset of every prior hookathon submission (715 rows, github.com/AtriumAcademy/UHI-Hook-Data). Searching it:
