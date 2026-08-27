@@ -66,21 +66,21 @@ export const networks: Record<string, NetworkConfig> = {
     chainId: 84532,
     chainName: "Base Sepolia",
     explorerUrl: "https://sepolia.basescan.org",
-    hookAddress: "0x749F507e5EA97588Ce1d97868399e294037a70C8",
+    hookAddress: "0x7cD1F7eC40dA2aF2E2502b19ed5C65ACC26Eb0C8",
     routerAddress: "0x71cD4Ea054F9Cb3D3BF6251A00673303411A7DD9",
     walletConnectProjectId: WC_PROJECT_ID,
     // Production randomness path: Chainlink VRF 2.5.
-    randomness: { kind: "vrf", address: "0x631100C996aBFea0d81233D4DF446a816E124C97" },
+    randomness: { kind: "vrf", address: "0x1d48ad4b395Cd6810542d520027010738E73799B" },
     poolKey: {
       // On this chain WICKB sorts below WICKA, so currency0 is WICKB.
       currency0: "0x55D4e4714fbcE432A1B15f23FBD28E299AE5037d", // WICKB
       currency1: "0x581B822B34bEf5138f2CE6EaCE81384D553F70a8", // WICKA
       fee: 8388608,
       tickSpacing: 60,
-      hooks: "0x749F507e5EA97588Ce1d97868399e294037a70C8",
+      hooks: "0x7cD1F7eC40dA2aF2E2502b19ed5C65ACC26Eb0C8",
     },
-    poolId: "0x4225440c775b36d1e5e4794cff503e8619d0a2ff21d2771af82f2c4b91a8dae3",
-    deployBlock: 45724610n,
+    poolId: "0x5107a6be3ace50e5c996af151b592777d34a58e06cec809fc5f1f1bf3461897d",
+    deployBlock: 45902893n,
     token0Symbol: "WICKB",
     token1Symbol: "WICKA",
     token0Decimals: 18,
