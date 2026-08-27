@@ -58,6 +58,7 @@ export type Wallet = {
   hasProvider: boolean;
   connect: () => Promise<void>;
   switchChain: () => Promise<void>;
+  disconnect: () => Promise<void>;
 };
 
 export function useWallet(): Wallet {
@@ -82,6 +83,11 @@ export function useWallet(): Wallet {
   );
 
   const connect = useCallback(async () => {
+    try {
+      localStorage.removeItem("wick-user-disconnected");
+    } catch {
+      // storage unavailable, connect still works
+    }
     let p = eth();
     if (!p && config.walletConnectProjectId) {
       p = await walletConnectProvider();
@@ -119,10 +125,38 @@ export function useWallet(): Wallet {
     await syncChain();
   }, [syncChain]);
 
+  const disconnect = useCallback(async () => {
+    const p = provider();
+    // WalletConnect sessions end for real; injected wallets get their permission
+    // revoked where supported, and the app forgets the account either way.
+    try {
+      await (p as { disconnect?: () => Promise<void> })?.disconnect?.();
+    } catch {
+      // not a WalletConnect provider
+    }
+    try {
+      await p?.request({ method: "wallet_revokePermissions", params: [{ eth_accounts: {} }] });
+    } catch {
+      // wallet does not support revocation, local forget still applies
+    }
+    activeProvider = null;
+    try {
+      localStorage.setItem("wick-user-disconnected", "1");
+    } catch {
+      // storage unavailable, session still forgets the account
+    }
+    setAccount(null);
+  }, []);
+
   useEffect(() => {
     const p = eth();
     if (!p) return;
     listen(p);
+    try {
+      if (localStorage.getItem("wick-user-disconnected") === "1") return;
+    } catch {
+      // storage unavailable, fall through to auto reconnect
+    }
     // Pick up an already authorized injected account without prompting.
     p.request({ method: "eth_accounts" })
       .then((accs) => {
@@ -136,7 +170,7 @@ export function useWallet(): Wallet {
       .catch(() => undefined);
   }, [listen, syncChain]);
 
-  return { account, wrongChain, hasProvider, connect, switchChain };
+  return { account, wrongChain, hasProvider, connect, switchChain, disconnect };
 }
 
 type OrderIn = { block: bigint; zeroForOne: boolean; owner: string; claimId: bigint };

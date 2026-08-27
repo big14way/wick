@@ -4,6 +4,7 @@ import { wickAbi } from "./abi";
 import { config, networks, activeNetworkKey, switchNetwork } from "./config";
 import { Candle } from "./Candle";
 import { Trade, useWallet } from "./Trade";
+import { Landing } from "./Landing";
 
 const client = createPublicClient({ transport: http(config.rpcUrl) });
 
@@ -51,6 +52,7 @@ const explorer = config.explorerUrl;
 
 export default function App() {
   const wallet = useWallet();
+  const [view, setView] = useState<"landing" | "app">(window.location.hash === "#app" ? "app" : "landing");
   const [activityTab, setActivityTab] = useState<"orders" | "fees">("orders");
   const [blockNumber, setBlockNumber] = useState<bigint>(0n);
   const [pool, setPool] = useState<PoolState | null>(null);
@@ -186,16 +188,26 @@ export default function App() {
 
   const orderSettled = (block: bigint) => epochs.some((e) => e.startBlock <= block && block <= e.closeBlock);
 
+  useEffect(() => {
+    const onHash = () => setView(window.location.hash === "#app" ? "app" : "landing");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
   const effVolEma = pool ? Math.round(decayedVolEma(pool.volEma, Number(blockNumber - pool.lastTickBlock))) : 0;
   const instantFeeNow = fees && pool ? Math.min(fees.base + fees.perTick * effVolEma, MAX_INSTANT_FEE) : null;
+
+  if (view === "landing") {
+    return <Landing epochsSettled={epochs.length} ordersSeen={orders.length} />;
+  }
 
   return (
     <div className="shell">
       <header className="mast">
         <div className="brand">
-          <div className="wordmark">
+          <a className="wordmark" href="#" title="Back to the front page">
             Wick<span className="dot">.</span>
-          </div>
+          </a>
           <div className="tagline">Candle auction settlement for Uniswap v4</div>
         </div>
         <div className="mast-right">
@@ -224,7 +236,12 @@ export default function App() {
                 Switch network
               </button>
             ) : (
-              <span className="account-chip mono">{short(wallet.account)}</span>
+              <span className="account-chip mono">
+                {short(wallet.account)}
+                <button className="chip-x" title="Disconnect wallet" onClick={wallet.disconnect}>
+                  Disconnect
+                </button>
+              </span>
             )
           ) : (
             <button className="btn connect" onClick={wallet.connect} disabled={!wallet.hasProvider}>
@@ -333,7 +350,7 @@ export default function App() {
 
           <section className="card">
             <div className="card-head">
-              <h2>Activity</h2>
+              <h2>Pool activity</h2>
               <div className="mini-tabs" role="tablist">
                 <button
                   role="tab"

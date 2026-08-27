@@ -1068,3 +1068,268 @@ header.mast {
   background: rgba(55, 91, 210, 0.16);
   color: #7f9dff;
 }
+
+/* Wallet chip disconnect */
+
+.account-chip .chip-x {
+  background: none;
+  border: none;
+  border-left: 1px solid var(--edge);
+  color: var(--ink-3);
+  cursor: pointer;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  margin-left: 9px;
+  padding: 0 0 0 9px;
+}
+
+.account-chip .chip-x:hover {
+  color: var(--ember);
+}
+
+a.wordmark {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* Landing */
+
+.landing {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 28px 24px 60px;
+}
+
+.land-mast {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 60px;
+}
+
+.land-nav {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+}
+
+.land-nav a {
+  color: var(--ink-2);
+  font-size: 14px;
+}
+
+.land-nav a.connect {
+  color: #201409;
+}
+
+.hero {
+  align-items: center;
+  display: flex;
+  gap: 60px;
+  margin-bottom: 70px;
+}
+
+.hero-copy {
+  flex: 1;
+}
+
+.hero h1 {
+  font-family: "Fraunces", serif;
+  font-size: 58px;
+  font-weight: 700;
+  line-height: 1.12;
+  margin-bottom: 22px;
+}
+
+.hero .hl {
+  color: var(--flame);
+}
+
+.hero-sub {
+  color: var(--ink-2);
+  font-size: 17px;
+  line-height: 1.65;
+  margin-bottom: 30px;
+  max-width: 640px;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.cta-lg {
+  background: var(--flame);
+  border-radius: 12px;
+  color: #201409;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 13px 30px;
+  text-decoration: none;
+}
+
+.cta-lg:hover {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
+.cta-ghost {
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  color: var(--ink-2);
+  font-size: 16px;
+  padding: 13px 30px;
+  text-decoration: none;
+}
+
+.cta-ghost:hover {
+  border-color: var(--flame);
+  text-decoration: none;
+}
+
+.hero-facts {
+  color: var(--ink-3);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 6px;
+}
+
+.hero-candle {
+  flex-shrink: 0;
+  padding: 20px 40px;
+}
+
+.land-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 70px;
+}
+
+.land-card {
+  background: var(--panel);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius);
+  padding: 30px 34px;
+}
+
+.land-card h3 {
+  font-family: "Fraunces", serif;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.land-card p {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.land-steps h2,
+.land-receipts h2 {
+  font-family: "Fraunces", serif;
+  font-size: 34px;
+  margin-bottom: 26px;
+  text-align: center;
+}
+
+.steps-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 18px;
+}
+
+.step-card {
+  background: var(--panel);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius-sm);
+  padding: 24px 22px;
+}
+
+.step-n {
+  color: var(--flame);
+  font-family: "Fraunces", serif;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.step-t {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 6px 0;
+}
+
+.step-d {
+  color: var(--ink-3);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.land-note {
+  color: var(--ink-3);
+  font-size: 14px;
+  margin: 0 auto 70px;
+  max-width: 720px;
+  text-align: center;
+}
+
+.receipt-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 18px;
+}
+
+.receipt {
+  background: var(--panel);
+  border: 1px solid var(--edge-soft);
+  border-radius: var(--radius-sm);
+  padding: 22px;
+  text-align: center;
+}
+
+.r-label {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  margin-bottom: 8px;
+}
+
+.r-num {
+  font-family: "Fraunces", serif;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.r-num.bad {
+  color: var(--ember);
+}
+
+.r-num.good {
+  color: var(--good);
+}
+
+.land-foot {
+  border-top: 1px solid var(--edge-soft);
+  color: var(--ink-3);
+  display: flex;
+  font-size: 13.5px;
+  justify-content: space-between;
+  padding-top: 24px;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+  }
+  .land-grid,
+  .steps-row,
+  .receipt-row {
+    grid-template-columns: 1fr;
+  }
+  .hero h1 {
+    font-size: 42px;
+  }
+}
