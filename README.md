@@ -147,7 +147,7 @@ Unichain Sepolia (chain 1301), primary demo. Randomness is the BlockhashProvider
 | WICKA | 0x0FC24a0C237C5970e210b1338Ca2dA20d7Fd7831 |
 | WICKB | 0xa97c20Fd92efeb66DD7458c9C5dfd3F2b7B2BA7e |
 
-Pool id 0xe83effd1920066d6708f46a248bc87f5681c1fc2557b0b2c8ddaf9b551e16ffa, deployed at block 60721426.
+Pool id 0xe83effd1920066d6708f46a248bc87f5681c1fc2557b0b2c8ddaf9b551e16ffa, deployed at block 60721426. Source verified: [hook](https://unichain-sepolia.blockscout.com/address/0x22916F75eDB48a3d66fEB680bB428a901e1D30c8) and [provider](https://unichain-sepolia.blockscout.com/address/0x801A6D9eF9E96Fb2958B9F49E03cb73fA2CC5e11) on Blockscout.
 
 Base Sepolia (chain 84532), production randomness path with Chainlink VRF 2.5 (coordinator 0x5C210eF41CD1a72de73bF76eC39637bB0d3d7BEE, 30 gwei lane).
 
@@ -158,7 +158,7 @@ Base Sepolia (chain 84532), production randomness path with Chainlink VRF 2.5 (c
 | WICKA | 0x581B822B34bEf5138f2CE6EaCE81384D553F70a8 |
 | WICKB | 0x55D4e4714fbcE432A1B15f23FBD28E299AE5037d |
 
-Pool id 0x5107a6be3ace50e5c996af151b592777d34a58e06cec809fc5f1f1bf3461897d, deployed at block 45902893. The ChainlinkVRFProvider is the subscription consumer (it is the contract that calls the coordinator).
+Pool id 0x5107a6be3ace50e5c996af151b592777d34a58e06cec809fc5f1f1bf3461897d, deployed at block 45902893. The ChainlinkVRFProvider is the subscription consumer (it is the contract that calls the coordinator). Source verified: [hook](https://base-sepolia.blockscout.com/address/0x7cD1F7eC40dA2aF2E2502b19ed5C65ACC26Eb0C8) and [provider](https://base-sepolia.blockscout.com/address/0x1d48ad4b395Cd6810542d520027010738E73799B) on Blockscout.
 
 ## Judging criteria mapping
 
