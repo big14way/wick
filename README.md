@@ -4,6 +4,8 @@ Candle auction settlement for Uniswap v4. A hook that makes sandwich attacks str
 
 Built solo by Gwill (GitHub big14way) for Atrium UHI10. Theme: Sustainable Liquidity and MEV Protection.
 
+Live dashboard: [wickhook.vercel.app](https://wickhook.vercel.app) (Unichain Sepolia demo) and [wickhook.vercel.app/?chain=base](https://wickhook.vercel.app/?chain=base) (Base Sepolia with Chainlink VRF).
+
 ## The problem
 
 Sandwich bots extract hundreds of millions of dollars a year from AMM swappers. Every mitigation so far leans on one of three crutches: private orderflow (trust a relay), commit reveal (two transactions, bad UX), or batch auctions with a fixed close (the bot just waits for the last block and sandwiches the settlement itself). The fixed close is the weakness. If the attacker knows exactly when the batch ends, the endgame is a queue position race, which is the game MEV bots already win.
