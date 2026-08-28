@@ -4,7 +4,9 @@ Candle auction settlement for Uniswap v4. A hook that makes sandwich attacks str
 
 Built solo by Gwill (GitHub big14way) for Atrium UHI10. Theme: Sustainable Liquidity and MEV Protection.
 
-Live dashboard: [wickhook.vercel.app](https://wickhook.vercel.app) (Unichain Sepolia demo) and [wickhook.vercel.app/?chain=base](https://wickhook.vercel.app/?chain=base) (Base Sepolia with Chainlink VRF).
+Demo video (3:33): [youtu.be/StR6x8n5xDE](https://youtu.be/StR6x8n5xDE)
+
+Live dashboard: [wickhook.vercel.app](https://wickhook.vercel.app) (Unichain Sepolia demo) and [wickhook.vercel.app/?chain=base](https://wickhook.vercel.app/?chain=base) (Base Sepolia with Chainlink VRF). Place a protected order and watch the candle close, settle and pay out in about thirty seconds; the keeper drives the lifecycle on its own.
 
 ## The problem
 
@@ -161,6 +163,14 @@ Base Sepolia (chain 84532), production randomness path with Chainlink VRF 2.5 (c
 | WICKB | 0x55D4e4714fbcE432A1B15f23FBD28E299AE5037d |
 
 Pool id 0x5107a6be3ace50e5c996af151b592777d34a58e06cec809fc5f1f1bf3461897d, deployed at block 45902893. The ChainlinkVRFProvider is the subscription consumer (it is the contract that calls the coordinator). Source verified: [hook](https://base-sepolia.blockscout.com/address/0x7cD1F7eC40dA2aF2E2502b19ed5C65ACC26Eb0C8) and [provider](https://base-sepolia.blockscout.com/address/0x1d48ad4b395Cd6810542d520027010738E73799B) on Blockscout.
+
+## Five minute judge path
+
+1. Watch the [demo video](https://youtu.be/StR6x8n5xDE) (3:33).
+2. Open [wickhook.vercel.app](https://wickhook.vercel.app), launch the app, place a protected order on Unichain Sepolia with any test wallet holding WICKA, and watch it custody, close at a random block, settle at one price and redeem. Switch the network dropdown to Base Sepolia to see the same hook running on live Chainlink VRF with epochs already settled by real fulfillments.
+3. `bash setup.sh && forge test` reproduces all 49 tests, and `forge test --match-path "test/SandwichSim.t.sol" -vv` prints the sandwich receipts below.
+4. The threat model section above states every known edge honestly, and docs/SECURITY_NOTES.md maps each safety claim to the test that proves it.
+5. Every deployed address in the tables below links to verified source on Blockscout.
 
 ## Judging criteria mapping
 
